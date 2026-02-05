@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sales Invoice</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+    }
+
+    .invoice-container {
+      width: 21cm;
+      min-height: 29.7cm;
+      margin: auto;
+      padding: 2cm;
+      border: 2px solid black;
+      background: white;
+      box-sizing: border-box;
+      margin-top: 2cm;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border: 1px solid black;
+      padding: 10px;
+      background-color: #eafaf1;
+    }
+
+    .company-info {
+      max-width: 60%;
+      font-size: 14px;
+      color: #2c3e50;
+    }
+
+    .company-info b {
+      color: #000;
+    }
+
+    .logo-box {
+      display: flex;
+      gap: 10px;
+      margin-top: 1.5cm;
+      margin-left: -1cm;
+    }
+
+    .logo-box img {
+      height: 80px;
+      border: 1px solid #ccc;
+      padding: 4px;
+      background: white;
+    }
+
+    .bill-to {
+      border: 1px solid black;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    table, th, td {
+      border: 1px solid black;
+    }
+
+    th {
+      background-color: #d4edda;
+    }
+
+    th, td {
+      text-align: center;
+      padding: 8px;
+    }
+
+    .totals {
+      width: 100%;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .totals td {
+      padding: 8px;
+      border: 1px solid black;
+    }
+
+    .totals .label {
+      text-align: right;
+      font-weight: bold;
+    }
+
+    .totals .amount {
+      text-align: right;
+    }
+
+    .amount-words {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .signature {
+      text-align: right;
+      margin-top: 60px;
+      padding-right: 20px;
+    }
+
+    .signature-box {
+      margin-top: 40px;
+      border-top: 1px solid black;
+      width: 200px;
+      float: right;
+      text-align: center;
+      padding-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-container" id = "invoice">
+
+    <h2>SALES INVOICE</h2>
+
+    <div class="header">
+      <div class="company-info">
+        <h3 style="margin: 0; color: green;"><strong>KANTEWALE</strong></h3>
+        <b>Shop No.63, Mahatma Fule Cotton Market,<br>
+        Nagpur-440018<br>
+        GSTIN:</b> 27AGUPG5012E1ZJ<br>
+        <b>Mobile:</b> 9372606422
+      </div>
+
+      <div>
+        <b>Invoice No:</b> {{ invoice_number }}<br>
+        <b>Invoice Date:</b> {{ date }}
+        <div class="logo-box">
+          <img src="{{ url_for('static', filename='img/guptaji.jpeg') }}" alt="Guptaji Logo">
+          <img src="{{ url_for('static', filename='img/sansui.jpeg') }}" alt="Sansui Logo">
+        </div>
+      </div>
+    </div>
+
+    <div class="bill-to">
+      <b>Bill To:</b><br>
+      <b>{{ name }}<br>
+      <b>Address:</b> {{ address }}<br>
+      <b>State:</b> {{ state }}<br>
+      <b>Mobile:</b> {{ phone }}
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>S.No</th>
+          <th>Items</th>
+          <th>Qty</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i, (item, qty, amt) in enumerate(product_data, start=1) %}
+        <tr>
+          <td>{{ i }}</td>
+          <td>{{ item }}</td>
+          <td>{{ qty }}</td>
+          <td>{{ "%.2f"|format(amt) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <table class="totals">
+      <tr>
+        <td class="label">Total Price</td>
+        <td class="amount">{{ "%.2f"|format(subtotal) }}</td>
+      </tr>
+      {% if apply_gst == 'yes' %}
+      <tr>
+        <td class="label">CGST (9%)</td>
+        <td class="amount">{{ "%.2f"|format(cgst) }}</td>
+      </tr>
+      <tr>
+        <td class="label">SGST (9%)</td>
+        <td class="amount">{{ "%.2f"|format(sgst) }}</td>
+      </tr>
+      {% endif %}
+      <tr>
+        <td class="label"><strong>Net Amount</strong></td>
+        <td class="amount"><strong>{{ "%.2f"|format(total) }}</strong></td>
+      </tr>
+    </table>
+
+    <p class="amount-words">Amount in Words: {{ amount_words }}</p>
+
+    <div class="signature">
+      <div class="signature-box">Authorized Signature</div>
+    </div>
+
+  </div>
+  <div style="text-align: center; margin-top: 30px;">
+    <button onclick="printDiv('invoice')" style="padding: 10px 20px; font-size: 16px; margin-right: 20px;">🖨 Print Bill</button>
+  </div>
+
+<script>
+function printDiv(divId) {
+    const printContents = document.getElementById(divId).innerHTML;
+    const originalContents = document.body.innerHTML;
+
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents;
+
+    // Optional: Reload the page to restore JS functionality
+    location.reload();
+}
+</script>
+
+</body>
+</html>
