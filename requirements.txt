@@ -1,2 +1,4 @@
 flask
 num2words
+pandas
+numpy
